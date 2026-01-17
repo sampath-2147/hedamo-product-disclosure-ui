@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hedamo — Product Disclosures</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      /* Smooth feel + better font rendering */
+      html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      .transition-soft {
+        transition: all 180ms ease;
+      }
+    </style>
+  </head>
+
+  <body class="bg-zinc-50 text-zinc-900">
+    <!-- Top Bar -->
+    <header class="border-b border-zinc-200 bg-white">
+      <div class="mx-auto max-w-6xl px-4 py-5">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-xl font-semibold tracking-tight">Products</h1>
+            <p class="mt-1 text-sm text-zinc-600">
+              Browse producer-declared product disclosures.
+            </p>
+          </div>
+
+          <div class="hidden sm:block">
+            <span
+              class="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs text-zinc-600"
+            >
+              Hedamo Disclosure Interface
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="mx-auto max-w-6xl px-4 py-6">
+      <!-- Controls -->
+      <section class="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <!-- Search -->
+          <div class="flex-1">
+            <label class="sr-only" for="search">Search</label>
+            <div class="relative">
+              <input
+                id="search"
+                type="text"
+                placeholder="Search products, producers, categories…"
+                class="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-soft focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+              />
+              <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">
+                ⌘K
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters + Sort -->
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div class="flex gap-3">
+              <div>
+                <label class="mb-1 block text-xs text-zinc-500">Category</label>
+                <select
+                  id="categoryFilter"
+                  class="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition-soft focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+                >
+                  <option value="All">All</option>
+                  <option value="Solar Panels">Solar Panels</option>
+                  <option value="Batteries">Batteries</option>
+                  <option value="Inverters">Inverters</option>
+                  <option value="Cables">Cables</option>
+                  <option value="Mounting">Mounting</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="mb-1 block text-xs text-zinc-500">Status</label>
+                <select
+                  id="statusFilter"
+                  class="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition-soft focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+                >
+                  <option value="All">All</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Submitted">Submitted</option>
+                  <option value="Published">Published</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-xs text-zinc-500">Sort</label>
+              <select
+                id="sortSelect"
+                class="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition-soft focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+              >
+                <option value="dateDesc">Last updated (newest)</option>
+                <option value="dateAsc">Last updated (oldest)</option>
+                <option value="nameAsc">Name (A–Z)</option>
+                <option value="nameDesc">Name (Z–A)</option>
+              </select>
+            </div>
+
+            <button
+              id="clearBtn"
+              class="mt-4 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 transition-soft hover:bg-zinc-50 focus:outline-none focus:ring-4 focus:ring-zinc-100 sm:mt-5"
+            >
+              Clear filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Active filter chips -->
+        <div id="activeChips" class="mt-4 flex flex-wrap gap-2"></div>
+      </section>
+
+      <!-- Content -->
+      <section class="mt-6">
+        <!-- Loading -->
+        <div id="loading" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+
+        <!-- Empty state -->
+        <div
+          id="emptyState"
+          class="hidden rounded-2xl border border-zinc-200 bg-white p-8 text-center"
+        >
+          <h3 class="text-base font-semibold">No products match your filters</h3>
+          <p class="mt-2 text-sm text-zinc-600">
+            Try clearing filters or searching by product name.
+          </p>
+          <button
+            id="emptyClearBtn"
+            class="mt-4 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-soft hover:opacity-90 focus:outline-none focus:ring-4 focus:ring-zinc-200"
+          >
+            Clear filters
+          </button>
+        </div>
+
+        <!-- Product grid -->
+        <div id="productGrid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </section>
+
+      <!-- Detail Modal -->
+      <div
+        id="detailModal"
+        class="fixed inset-0 hidden items-center justify-center bg-black/30 p-4"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div
+          class="w-full max-w-2xl rounded-2xl border border-zinc-200 bg-white shadow-xl"
+        >
+          <div class="flex items-start justify-between border-b border-zinc-200 p-5">
+            <div>
+              <p class="text-xs text-zinc-500">Product disclosure</p>
+              <h2 id="detailTitle" class="mt-1 text-lg font-semibold tracking-tight">
+                Product Name
+              </h2>
+              <p id="detailMeta" class="mt-1 text-sm text-zinc-600">
+                Category • Producer
+              </p>
+            </div>
+
+            <button
+              id="closeModal"
+              class="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm transition-soft hover:bg-zinc-50 focus:outline-none focus:ring-4 focus:ring-zinc-100"
+            >
+              Close
+            </button>
+          </div>
+
+          <div class="p-5 space-y-4">
+            <!-- Disclosure Summary -->
+            <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+              <h3 class="text-sm font-semibold">Disclosure summary</h3>
+              <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                <div class="rounded-xl bg-white p-3 border border-zinc-200">
+                  <p class="text-xs text-zinc-500">Declared by</p>
+                  <p id="declaredBy" class="mt-1 text-sm font-medium"></p>
+                </div>
+                <div class="rounded-xl bg-white p-3 border border-zinc-200">
+                  <p class="text-xs text-zinc-500">Declared on</p>
+                  <p id="declaredOn" class="mt-1 text-sm font-medium"></p>
+                </div>
+                <div class="rounded-xl bg-white p-3 border border-zinc-200">
+                  <p class="text-xs text-zinc-500">Evidence attached</p>
+                  <p id="evidenceCount" class="mt-1 text-sm font-medium"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Version History -->
+            <div class="rounded-2xl border border-zinc-200 bg-white p-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold">Version history</h3>
+                <span id="currentStatusBadge"></span>
+              </div>
+
+              <div id="versionList" class="mt-3 space-y-2"></div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="rounded-2xl border border-zinc-200 bg-white p-4">
+              <h3 class="text-sm font-semibold">Disclaimer</h3>
+              <p class="mt-2 text-sm text-zinc-700">
+                <span class="font-medium">
+                  This page presents producer-declared information; it is not certification or verification.
+                </span>
+              </p>
+              <p class="mt-2 text-xs text-zinc-500">
+                Information and evidence shown here are provided by the producer as part of a structured disclosure.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 border-t border-zinc-200 p-5">
+            <button
+              id="closeModal2"
+              class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-soft hover:opacity-90 focus:outline-none focus:ring-4 focus:ring-zinc-200"
+            >
+              Back to products
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
